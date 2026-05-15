@@ -97,6 +97,14 @@
       margin-top: 2px;
     }
 
+    .xp-divider { width: 1px; height: 40px; background: var(--border); flex-shrink: 0; }
+
+    .xp-streak {
+      display: flex; flex-direction: column; align-items: flex-start; flex-shrink: 0;
+    }
+    .streak-number { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .streak-number.on-fire { color: #F97316; }
+
     .xp-right { flex: 1; }
 
     .xp-track {
@@ -354,6 +362,12 @@
     <div class="xp-number"><span id="xp-earned">0</span> XP</div>
     <div class="xp-label">Today's Score</div>
   </div>
+  <div class="xp-divider"></div>
+  <div class="xp-streak">
+    <div class="streak-number" id="streak-count">0</div>
+    <div class="xp-label">Day Streak</div>
+  </div>
+  <div class="xp-divider"></div>
   <div class="xp-right">
     <div class="xp-track"><div class="xp-fill" id="xp-fill"></div></div>
     <div class="xp-breakdown" id="xp-breakdown"></div>
@@ -430,6 +444,32 @@
     return d.toISOString().slice(0, 10);
   }
 
+  function calcStreak() {
+    const today = todayKey();
+    let streak = 0;
+    let cursor = today;
+    while (true) {
+      const data = getData(cursor);
+      const xp = calcXP(data);
+      if (xp > 0) {
+        streak++;
+        cursor = offsetDate(cursor, -1);
+      } else if (cursor === today) {
+        cursor = offsetDate(cursor, -1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  function updateStreak() {
+    const streak = calcStreak();
+    const el = document.getElementById("streak-count");
+    el.textContent = streak > 0 ? `🔥 ${streak}` : streak;
+    el.className = "streak-number" + (streak >= 3 ? " on-fire" : "");
+  }
+
   function calcXP(data) {
     let xp = 0;
     PILLARS.forEach(p => {
@@ -458,6 +498,7 @@
     renderPillars(data);
     renderPlanning(data);
     updateXP(data);
+    updateStreak();
     renderWeek();
   }
 
