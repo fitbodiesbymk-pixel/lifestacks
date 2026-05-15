@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LifeStacks — Live a Fuller Life</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --link:    #F59E0B;
+      --learn:   #3B82F6;
+      --love:    #EC4899;
+      --last:    #10B981;
+      --leisure: #8B5CF6;
+      --bg:      #F8F7F4;
+      --card:    #FFFFFF;
+      --text:    #1C1C1C;
+      --muted:   #6B7280;
+      --border:  #E5E7EB;
+      --gold:    #F59E0B;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, #1C1C2E 0%, #2D1B69 50%, #1C1C2E 100%);
+      padding: 80px 24px 72px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(245,158,11,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 50%, rgba(139,92,246,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-pill {
+      display: inline-block;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 999px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .hero h1 .accent { color: var(--leisure); }
+
+    .hero-tagline {
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      color: rgba(255,255,255,0.65);
+      max-width: 520px;
+      margin: 18px auto 40px;
+      line-height: 1.6;
+    }
+
+    .pillar-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
+
+    .pillar-chip {
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border: 1.5px solid;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      background: var(--leisure);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 16px 36px;
+      border-radius: 12px;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 24px rgba(139,92,246,0.4);
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(139,92,246,0.5);
+    }
+
+    /* ── SECTIONS ── */
+    .section {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 72px 24px;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--leisure);
+      margin-bottom: 12px;
+    }
+
+    .section h2 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+
+    .section p {
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: 18px;
+    }
+
+    .section p:last-child { margin-bottom: 0; }
+
+    .section p strong { color: var(--text); }
+
+    /* ── PILLARS GRID ── */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 40px;
+    }
+
+    .pillar-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 20px;
+      border-top: 4px solid var(--accent);
+    }
+
+    .pillar-card-name {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .pillar-card-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── XP EXPLAINER ── */
+    .xp-section {
+      background: #fff;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .xp-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 36px;
+    }
+
+    .xp-card {
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 22px 20px;
+      text-align: center;
+    }
+
+    .xp-card-number {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .xp-card-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .xp-card-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* ── QUOTE ── */
+    .quote-section {
+      background: linear-gradient(135deg, #1C1C2E 0%, #2D1B69 100%);
+      padding: 72px 24px;
+      text-align: center;
+    }
+
+    .quote-text {
+      font-size: clamp(1.2rem, 3vw, 1.7rem);
+      font-weight: 700;
+      color: #fff;
+      max-width: 640px;
+      margin: 0 auto 24px;
+      line-height: 1.5;
+      letter-spacing: -0.3px;
+    }
+
+    .quote-text em { color: var(--leisure); font-style: normal; }
+
+    .quote-attr {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      font-weight: 600;
+    }
+
+    /* ── INTENTION ── */
+    .intention-example {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-top: 28px;
+    }
+
+    .intention-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .intention-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.92rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .intention-item:last-child { border-bottom: none; }
+
+    .intention-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      max-width: 760px;
+      margin: 0 auto;
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    footer strong { color: var(--text); }
+
+    .footer-cta {
+      display: inline-block;
+      margin-top: 24px;
+      background: var(--leisure);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: transform 0.15s;
+    }
+
+    .footer-cta:hover { transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-pill">A Framework for Living Fully</div>
+  <h1>Life<span class="accent">Stacks</span></h1>
+  <p class="hero-tagline">
+    Five pillars. One life. A simple system for making sure the things that actually matter don't get left behind.
+  </p>
+  <div class="pillar-row">
+    <div class="pillar-chip" style="color:#F59E0B;border-color:rgba(245,158,11,0.4)">LINK</div>
+    <div class="pillar-chip" style="color:#3B82F6;border-color:rgba(59,130,246,0.4)">LEARN</div>
+    <div class="pillar-chip" style="color:#EC4899;border-color:rgba(236,72,153,0.4)">LOVE</div>
+    <div class="pillar-chip" style="color:#10B981;border-color:rgba(16,185,129,0.4)">LAST</div>
+    <div class="pillar-chip" style="color:#8B5CF6;border-color:rgba(139,92,246,0.4)">LEISURE</div>
+  </div>
+  <a href="lifestacks-tracker.html" class="cta-btn">Open My Tracker →</a>
+</section>
+
+<!-- WHAT IS LIFESTACKS -->
+<section class="section">
+  <div class="section-label">The Concept</div>
+  <h2>Life is full. Are you living all of it?</h2>
+  <p>
+    Most of us are good at one or two things. We grind at work, hit the gym, maybe catch up with a friend here and there. But when was the last time you felt genuinely <strong>full</strong> — like you really showed up in every area of your life on the same day?
+  </p>
+  <p>
+    LifeStacks is a framework built around the idea that a great life isn't about doing one thing perfectly — it's about consistently showing up across <strong>five key pillars</strong> that research and experience show matter most. Not perfectly. Not obsessively. Just intentionally, every day.
+  </p>
+  <p>
+    Think of it like stacking small wins. Each pillar you touch is a win. Stack enough of them and you start to feel the difference — more energy, more connection, more purpose.
+  </p>
+
+  <div class="pillars-grid">
+    <div class="pillar-card" style="--accent:#F59E0B">
+      <div class="pillar-card-name">LINK</div>
+      <div class="pillar-card-desc">Humans are wired for connection. A text, a conversation, a shared moment — it all counts.</div>
+    </div>
+    <div class="pillar-card" style="--accent:#3B82F6">
+      <div class="pillar-card-name">LEARN</div>
+      <div class="pillar-card-desc">Growth keeps your brain alive and your curiosity sharp. Stay a student of life.</div>
+    </div>
+    <div class="pillar-card" style="--accent:#EC4899">
+      <div class="pillar-card-name">LOVE</div>
+      <div class="pillar-card-desc">Deep connection fuels happiness and stability. Invest in the relationships that matter most.</div>
+    </div>
+    <div class="pillar-card" style="--accent:#10B981">
+      <div class="pillar-card-name">LAST</div>
+      <div class="pillar-card-desc">Movement strengthens both body and mind. Take care of the machine you live in.</div>
+    </div>
+    <div class="pillar-card" style="--accent:#8B5CF6">
+      <div class="pillar-card-name">LEISURE</div>
+      <div class="pillar-card-desc">Joy for its own sake keeps life full. Rest, play, and fun aren't optional — they're essential.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- XP SYSTEM -->
+<section class="xp-section">
+  <div class="section">
+    <div class="section-label">The XP System</div>
+    <h2>Earn points for living your life.</h2>
+    <p>
+      Here's where it gets fun. LifeStacks gamifies your day so you can actually <strong>see your progress</strong> instead of just feeling like you're spinning your wheels. Every pillar you touch earns you XP — experience points, like in a game. But this game is your life.
+    </p>
+    <p>
+      The real magic? <strong>Stacking.</strong> When one activity covers multiple pillars at once — watching a documentary with your partner, going for a run with a friend — you earn double XP. Life's best moments usually hit multiple pillars at once. LifeStacks rewards you for noticing that.
+    </p>
+
+    <div class="xp-cards">
+      <div class="xp-card">
+        <div class="xp-card-number">10</div>
+        <div class="xp-card-label">XP per Pillar</div>
+        <div class="xp-card-sub">Complete any pillar, any way that feels right for that day.</div>
+      </div>
+      <div class="xp-card">
+        <div class="xp-card-number">20</div>
+        <div class="xp-card-label">XP when Stacked</div>
+        <div class="xp-card-sub">One activity, multiple pillars. Double the XP, half the effort.</div>
+      </div>
+      <div class="xp-card">
+        <div class="xp-card-number">+10</div>
+        <div class="xp-card-label">XP for Planning</div>
+        <div class="xp-card-sub">Set tomorrow's intentions tonight. Research shows it works.</div>
+      </div>
+      <div class="xp-card">
+        <div class="xp-card-number">60</div>
+        <div class="xp-card-label">Max Daily XP</div>
+        <div class="xp-card-sub">Hit all five pillars and plan ahead. A perfect day.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTENTION SETTING -->
+<section class="section">
+  <div class="section-label">Why Intention Setting</div>
+  <h2>Your best days start the night before.</h2>
+  <p>
+    There's a reason elite performers, athletes, and coaches all talk about planning. Research on <strong>implementation intentions</strong> — the "when, where, and how" of your goals — consistently shows that people who plan ahead are dramatically more likely to follow through.
+  </p>
+  <p>
+    That's why LifeStacks includes a daily intention-setting section. Not to pressure you into a perfect plan, but to give your brain a roadmap the night before. When you wake up knowing what you want to do, you actually do it. It's that simple. And it earns you an extra <strong>+10 XP</strong> just for showing up prepared.
+  </p>
+
+  <div class="intention-example">
+    <div class="intention-label">Example — Tomorrow's Intentions</div>
+    <div class="intention-item">
+      <span class="intention-tag" style="background:#FEF3C7;color:#92400E">LEARN</span>
+      Watch a TED Talk on Positive Psychology over morning coffee
+    </div>
+    <div class="intention-item">
+      <span class="intention-tag" style="background:#FCE7F3;color:#9D174D">LOVE · LINK ⚡</span>
+      Go to lunch with my partner — quality time, real conversation
+    </div>
+    <div class="intention-item">
+      <span class="intention-tag" style="background:#D1FAE5;color:#065F46">LAST</span>
+      6am run before the day gets loud
+    </div>
+    <div class="intention-item">
+      <span class="intention-tag" style="background:#EDE9FE;color:#5B21B6">LEISURE · LINK ⚡</span>
+      Take the kids to the park after work
+    </div>
+    <div class="intention-item">
+      <span class="intention-tag" style="background:#FEF3C7;color:#92400E">LINK</span>
+      Send a birthday card to an old friend
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section class="quote-section">
+  <p class="quote-text">
+    "You don't need to overhaul your life. You just need to <em>notice</em> it — and show up for it, one pillar at a time."
+  </p>
+  <p class="quote-attr">— Mike Doehla, Creator of LifeStacks</p>
+</section>
+
+<!-- FOOTER CTA -->
+<footer>
+  <p>LifeStacks was created by <strong>Mike Doehla</strong> as a practical framework for living a fuller, more intentional life.</p>
+  <p>The tracker was built to bring that framework to life — one day at a time.</p>
+  <a href="lifestacks-tracker.html" class="footer-cta">Start Today →</a>
+</footer>
+
+</body>
+</html>

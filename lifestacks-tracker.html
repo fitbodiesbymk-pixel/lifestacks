@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LifeStacks Tracker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --link:    #F59E0B;
+      --learn:   #3B82F6;
+      --love:    #EC4899;
+      --last:    #10B981;
+      --leisure: #8B5CF6;
+      --bg:      #F8F7F4;
+      --card:    #FFFFFF;
+      --text:    #1C1C1C;
+      --muted:   #6B7280;
+      --border:  #E5E7EB;
+      --gold:    #F59E0B;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+
+    header {
+      max-width: 780px;
+      margin: 0 auto 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.5px; }
+    header h1 span { color: var(--leisure); }
+
+    .date-nav { display: flex; align-items: center; gap: 10px; }
+    .date-nav button {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      width: 30px; height: 30px; cursor: pointer; font-size: 1rem; color: var(--muted);
+      display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+    }
+    .date-nav button:hover { background: var(--border); }
+    #current-date { font-size: 0.9rem; font-weight: 600; color: var(--muted); min-width: 130px; text-align: center; }
+
+    /* XP Banner */
+    .xp-banner {
+      max-width: 780px;
+      margin: 0 auto 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .xp-total {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      flex-shrink: 0;
+    }
+
+    .xp-number {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .xp-number span { color: var(--gold); }
+
+    .xp-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-top: 2px;
+    }
+
+    .xp-right { flex: 1; }
+
+    .xp-track {
+      height: 10px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .xp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--last), var(--gold));
+      border-radius: 999px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .xp-breakdown {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .xp-breakdown span { display: flex; align-items: center; gap: 4px; }
+    .xp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+    .xp-dot.active { background: var(--last); }
+    .xp-dot.planning { background: var(--gold); }
+
+    /* Pillars */
+    .pillars { max-width: 780px; margin: 0 auto; display: grid; gap: 14px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      border-left: 5px solid var(--accent);
+      transition: opacity 0.2s;
+    }
+
+    .card.done { opacity: 0.72; }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .pillar-name { font-size: 1.05rem; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; }
+    .pillar-tag { font-size: 0.77rem; color: var(--muted); margin-top: 2px; }
+
+    .card-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+    .xp-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--border);
+      color: var(--muted);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .xp-badge.earned { background: #FEF3C7; color: #92400E; }
+    .xp-badge.stacked-earned { background: #FDE68A; color: #78350F; }
+
+    .stack-btn {
+      flex-shrink: 0;
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: none;
+      cursor: pointer;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 4px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .stack-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .stack-btn.stacked { background: #FEF3C7; border-color: var(--gold); color: #92400E; }
+
+    .check-btn {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      color: var(--accent);
+      transition: background 0.2s, color 0.2s;
+    }
+    .check-btn.checked { background: var(--accent); color: #fff; }
+
+    .field-label {
+      font-size: 0.68rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px;
+    }
+
+    .goal-input {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px;
+      padding: 9px 12px; font-size: 0.87rem; color: var(--text);
+      background: var(--bg); resize: none; font-family: inherit;
+      margin-bottom: 10px; transition: border-color 0.2s; outline: none;
+    }
+    .goal-input:focus { border-color: var(--accent); }
+    .goal-input::placeholder { color: #C0C0C0; }
+
+    .note-input {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 12px; font-size: 0.82rem; color: var(--muted);
+      background: var(--bg); resize: none; font-family: inherit;
+      height: 52px; outline: none; transition: border-color 0.2s;
+    }
+    .note-input:focus { border-color: var(--accent); }
+    .note-input::placeholder { color: #C8C8C8; }
+
+    /* Tomorrow's Plan */
+    .planning-card {
+      max-width: 780px;
+      margin: 14px auto 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      border-left: 5px solid var(--gold);
+    }
+
+    .planning-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .planning-title { font-size: 1.05rem; font-weight: 700; color: var(--gold); }
+    .planning-sub { font-size: 0.77rem; color: var(--muted); margin-top: 2px; }
+
+    .planning-xp-badge {
+      font-size: 0.72rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 999px;
+      background: var(--border); color: var(--muted);
+      transition: all 0.2s;
+    }
+    .planning-xp-badge.earned { background: #FEF3C7; color: #92400E; }
+
+    .planning-input {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; font-size: 0.87rem; color: var(--text);
+      background: var(--bg); resize: none; font-family: inherit;
+      height: 90px; outline: none; transition: border-color 0.2s;
+      line-height: 1.5;
+    }
+    .planning-input:focus { border-color: var(--gold); }
+    .planning-input::placeholder { color: #C0C0C0; }
+
+    /* Week strip */
+    .week-strip {
+      max-width: 780px; margin: 20px auto 0;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px 20px;
+    }
+    .week-strip h2 { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px; }
+    .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .week-day { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .week-day-label { font-size: 0.62rem; color: var(--muted); font-weight: 600; }
+    .week-day.today .week-day-label { color: var(--text); font-weight: 800; }
+    .week-day-dots { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+    .dot.filled { background: var(--dot-color, #10B981); }
+    .week-xp { font-size: 0.6rem; font-weight: 700; color: var(--muted); }
+    .week-day.today .week-xp { color: var(--gold); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Life<span>Stacks</span></h1>
+  <div class="date-nav">
+    <button id="prev-day">‹</button>
+    <div id="current-date"></div>
+    <button id="next-day">›</button>
+  </div>
+</header>
+
+<div class="xp-banner">
+  <div class="xp-total">
+    <div class="xp-number"><span id="xp-earned">0</span> XP</div>
+    <div class="xp-label">Today's Score</div>
+  </div>
+  <div class="xp-right">
+    <div class="xp-track"><div class="xp-fill" id="xp-fill"></div></div>
+    <div class="xp-breakdown" id="xp-breakdown"></div>
+  </div>
+</div>
+
+<div class="pillars" id="pillars"></div>
+
+<div class="planning-card">
+  <div class="planning-header">
+    <div>
+      <div class="planning-title">Tomorrow's Intentions</div>
+      <div class="planning-sub">Set your plan for tomorrow · earns +10 XP</div>
+    </div>
+    <div class="planning-xp-badge" id="planning-badge">+10 XP</div>
+  </div>
+  <div class="field-label">What will you do tomorrow across your pillars?</div>
+  <textarea class="planning-input" id="planning-input"
+    placeholder="e.g. Watch a TED Talk on positive psychology, go to lunch with my partner, run at 6am, take the kids to the park..."></textarea>
+</div>
+
+<div class="week-strip">
+  <h2>This Week</h2>
+  <div class="week-grid" id="week-grid"></div>
+</div>
+
+<script>
+  const PILLARS = [
+    { id: "link",    name: "LINK",    tag: "Humans are built for connection.",              color: "#F59E0B" },
+    { id: "learn",   name: "LEARN",   tag: "Growth keeps your brain and curiosity alive.",  color: "#3B82F6" },
+    { id: "love",    name: "LOVE",    tag: "Connection fuels happiness and stability.",      color: "#EC4899" },
+    { id: "last",    name: "LAST",    tag: "Movement strengthens both body and mind.",       color: "#10B981" },
+    { id: "leisure", name: "LEISURE", tag: "Joy for its own sake keeps life full.",          color: "#8B5CF6" },
+  ];
+
+  const MAX_XP = 60; // 5 pillars × 10 + 10 planning
+  let viewDate = todayKey();
+
+  function todayKey() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function getData(key) {
+    try { return JSON.parse(localStorage.getItem("lifestacks_" + key) || "{}"); } catch { return {}; }
+  }
+
+  function saveData(key, data) {
+    localStorage.setItem("lifestacks_" + key, JSON.stringify(data));
+  }
+
+  function formatDate(key) {
+    return new Date(key + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  }
+
+  function shortDay(key) {
+    return new Date(key + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" }).slice(0, 2).toUpperCase();
+  }
+
+  function offsetDate(key, n) {
+    const d = new Date(key + "T12:00:00");
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function calcXP(data) {
+    let xp = 0;
+    PILLARS.forEach(p => {
+      const e = data[p.id] || {};
+      if (e.done) xp += e.stacked ? 20 : 10;
+    });
+    if ((data._planning || "").trim()) xp += 10;
+    return xp;
+  }
+
+  function getWeekKeys() {
+    const today = todayKey();
+    const d = new Date(today + "T12:00:00");
+    const keys = [];
+    for (let i = 0; i < 7; i++) keys.push(offsetDate(today, i - d.getDay()));
+    return keys;
+  }
+
+  function render() {
+    document.getElementById("current-date").textContent = formatDate(viewDate);
+    const isToday = viewDate === todayKey();
+    document.getElementById("next-day").disabled = isToday;
+    document.getElementById("next-day").style.opacity = isToday ? "0.3" : "1";
+
+    const data = getData(viewDate);
+    renderPillars(data);
+    renderPlanning(data);
+    updateXP(data);
+    renderWeek();
+  }
+
+  function renderPillars(data) {
+    const container = document.getElementById("pillars");
+    container.innerHTML = "";
+
+    PILLARS.forEach(p => {
+      const entry = data[p.id] || { goal: "", note: "", done: false, stacked: false };
+      const xpVal = entry.done ? (entry.stacked ? 20 : 10) : 0;
+
+      const card = document.createElement("div");
+      card.className = "card" + (entry.done ? " done" : "");
+      card.style.setProperty("--accent", p.color);
+
+      let badgeClass = "";
+      let badgeText = entry.stacked ? "⚡ 20 XP" : "10 XP";
+      if (entry.done && entry.stacked) badgeClass = "stacked-earned";
+      else if (entry.done) badgeClass = "earned";
+
+      card.innerHTML = `
+        <div class="card-header">
+          <div>
+            <div class="pillar-name">${p.name}</div>
+            <div class="pillar-tag">${p.tag}</div>
+          </div>
+          <div class="card-actions">
+            <div class="xp-badge ${badgeClass}">${badgeText}</div>
+            <button class="stack-btn ${entry.stacked ? "stacked" : ""}" data-id="${p.id}" title="Mark as stacked with another pillar">
+              ⚡ Stack
+            </button>
+            <button class="check-btn ${entry.done ? "checked" : ""}" data-id="${p.id}">
+              ${entry.done ? "✓" : "○"}
+            </button>
+          </div>
+        </div>
+        <div class="field-label">Today's Goal</div>
+        <textarea class="goal-input" data-id="${p.id}" data-field="goal"
+          placeholder="What's your intention for ${p.name.toLowerCase()} today?"
+          rows="2">${entry.goal}</textarea>
+        <div class="field-label">Notes / Reflection</div>
+        <textarea class="note-input" data-id="${p.id}" data-field="note"
+          placeholder="How did it go?">${entry.note}</textarea>
+      `;
+
+      container.appendChild(card);
+    });
+
+    container.querySelectorAll(".check-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const data = getData(viewDate);
+        if (!data[id]) data[id] = { goal: "", note: "", done: false, stacked: false };
+        data[id].done = !data[id].done;
+        saveData(viewDate, data);
+        render();
+      });
+    });
+
+    container.querySelectorAll(".stack-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const data = getData(viewDate);
+        if (!data[id]) data[id] = { goal: "", note: "", done: false, stacked: false };
+        data[id].stacked = !data[id].stacked;
+        saveData(viewDate, data);
+        render();
+      });
+    });
+
+    container.querySelectorAll("textarea").forEach(ta => {
+      ta.addEventListener("input", () => {
+        const id = ta.dataset.id;
+        const field = ta.dataset.field;
+        const data = getData(viewDate);
+        if (!data[id]) data[id] = { goal: "", note: "", done: false, stacked: false };
+        data[id][field] = ta.value;
+        saveData(viewDate, data);
+        updateXP(data);
+      });
+    });
+  }
+
+  function renderPlanning(data) {
+    const input = document.getElementById("planning-input");
+    const badge = document.getElementById("planning-badge");
+    input.value = data._planning || "";
+    const filled = (data._planning || "").trim().length > 0;
+    badge.className = "planning-xp-badge" + (filled ? " earned" : "");
+    badge.textContent = filled ? "✓ +10 XP" : "+10 XP";
+
+    input.oninput = () => {
+      const data = getData(viewDate);
+      data._planning = input.value;
+      saveData(viewDate, data);
+      updateXP(data);
+      const nowFilled = input.value.trim().length > 0;
+      badge.className = "planning-xp-badge" + (nowFilled ? " earned" : "");
+      badge.textContent = nowFilled ? "✓ +10 XP" : "+10 XP";
+    };
+  }
+
+  function updateXP(data) {
+    const xp = calcXP(data);
+    const pct = Math.min((xp / MAX_XP) * 100, 100);
+
+    document.getElementById("xp-earned").textContent = xp;
+    document.getElementById("xp-fill").style.width = pct + "%";
+
+    const breakdown = document.getElementById("xp-breakdown");
+    let parts = [];
+    PILLARS.forEach(p => {
+      const e = data[p.id] || {};
+      if (e.done) {
+        const label = e.stacked ? `${p.name} ⚡20` : `${p.name} 10`;
+        parts.push(`<span><span class="xp-dot active" style="background:${p.color}"></span>${label}</span>`);
+      }
+    });
+    if ((data._planning || "").trim()) {
+      parts.push(`<span><span class="xp-dot planning"></span>Planning +10</span>`);
+    }
+    if (!parts.length) {
+      breakdown.innerHTML = `<span style="color:#C0C0C0">Complete pillars to earn XP · max ${MAX_XP} XP today</span>`;
+    } else {
+      breakdown.innerHTML = parts.join("");
+    }
+  }
+
+  function renderWeek() {
+    const grid = document.getElementById("week-grid");
+    grid.innerHTML = "";
+    const today = todayKey();
+
+    getWeekKeys().forEach(key => {
+      const data = getData(key);
+      const xp = calcXP(data);
+
+      const dayEl = document.createElement("div");
+      dayEl.className = "week-day" + (key === today ? " today" : "");
+
+      const label = document.createElement("div");
+      label.className = "week-day-label";
+      label.textContent = shortDay(key);
+
+      const dots = document.createElement("div");
+      dots.className = "week-day-dots";
+
+      PILLARS.forEach(p => {
+        const dot = document.createElement("div");
+        const e = data[p.id] || {};
+        dot.className = "dot" + (e.done ? " filled" : "");
+        dot.style.setProperty("--dot-color", p.color);
+        dots.appendChild(dot);
+      });
+
+      const xpLabel = document.createElement("div");
+      xpLabel.className = "week-xp";
+      xpLabel.textContent = xp > 0 ? xp + " XP" : "";
+
+      dayEl.appendChild(label);
+      dayEl.appendChild(dots);
+      dayEl.appendChild(xpLabel);
+      grid.appendChild(dayEl);
+    });
+  }
+
+  document.getElementById("prev-day").addEventListener("click", () => {
+    viewDate = offsetDate(viewDate, -1);
+    render();
+  });
+
+  document.getElementById("next-day").addEventListener("click", () => {
+    if (viewDate < todayKey()) { viewDate = offsetDate(viewDate, 1); render(); }
+  });
+
+  render();
+</script>
+</body>
+</html>
