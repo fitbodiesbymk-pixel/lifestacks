@@ -280,6 +280,59 @@
     .dot.filled { background: var(--dot-color, #10B981); }
     .week-xp { font-size: 0.6rem; font-weight: 700; color: var(--muted); }
     .week-day.today .week-xp { color: var(--gold); }
+
+    /* Progress Card */
+    .progress-card {
+      max-width: 780px; margin: 14px auto 0;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px 20px;
+    }
+
+    .progress-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .progress-title {
+      font-size: 0.72rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.6px;
+    }
+
+    .period-tabs { display: flex; gap: 4px; }
+    .period-tab {
+      font-size: 0.72rem; font-weight: 700; padding: 4px 10px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: none; color: var(--muted); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .period-tab:hover { background: var(--border); }
+    .period-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+    .prog-xp-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .prog-xp-num { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+    .prog-xp-num span { color: var(--gold); }
+    .prog-xp-sub { font-size: 0.75rem; color: var(--muted); }
+
+    .prog-total-bar {
+      height: 8px; background: var(--border); border-radius: 999px;
+      overflow: hidden; margin-bottom: 16px;
+    }
+    .prog-total-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--last), var(--gold));
+      border-radius: 999px; transition: width 0.4s ease;
+    }
+
+    .prog-pillar {
+      display: grid; grid-template-columns: 70px 1fr 56px;
+      align-items: center; gap: 10px; margin-bottom: 8px;
+    }
+    .prog-pillar-name { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.5px; }
+    .prog-bar-wrap {
+      height: 7px; background: var(--border); border-radius: 999px; overflow: hidden;
+    }
+    .prog-bar-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
+    .prog-pillar-count { font-size: 0.7rem; color: var(--muted); font-weight: 600; text-align: right; }
   </style>
 </head>
 <body>
@@ -325,6 +378,18 @@
 <div class="week-strip">
   <h2>This Week</h2>
   <div class="week-grid" id="week-grid"></div>
+</div>
+
+<div class="progress-card">
+  <div class="progress-header">
+    <h2 class="progress-title">Progress</h2>
+    <div class="period-tabs">
+      <button class="period-tab active" data-period="week">Week</button>
+      <button class="period-tab" data-period="month">Month</button>
+      <button class="period-tab" data-period="year">Year</button>
+    </div>
+  </div>
+  <div id="progress-body"></div>
 </div>
 
 <script>
@@ -559,6 +624,83 @@
     });
   }
 
+  let activePeriod = "week";
+
+  function getPeriodRange(period) {
+    const today = todayKey();
+    const [yr, mo] = today.split("-").map(Number);
+    let startKey;
+    if (period === "week") {
+      startKey = getWeekKeys()[0];
+    } else if (period === "month") {
+      startKey = `${yr}-${String(mo).padStart(2, "0")}-01`;
+    } else {
+      startKey = `${yr}-01-01`;
+    }
+    return { startKey, endKey: today };
+  }
+
+  function daysBetween(startKey, endKey) {
+    const a = new Date(startKey + "T12:00:00");
+    const b = new Date(endKey + "T12:00:00");
+    return Math.round((b - a) / 86400000) + 1;
+  }
+
+  function renderProgress(period) {
+    const { startKey, endKey } = getPeriodRange(period);
+    const daysInRange = daysBetween(startKey, endKey);
+
+    let totalXP = 0;
+    const pillarCounts = {};
+    PILLARS.forEach(p => { pillarCounts[p.id] = 0; });
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key.startsWith("lifestacks_")) continue;
+      const dateKey = key.replace("lifestacks_", "");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) continue;
+      if (dateKey < startKey || dateKey > endKey) continue;
+      const data = getData(dateKey);
+      totalXP += calcXP(data);
+      PILLARS.forEach(p => { if ((data[p.id] || {}).done) pillarCounts[p.id]++; });
+    }
+
+    const maxXP = daysInRange * MAX_XP;
+    const xpPct = maxXP > 0 ? Math.min((totalXP / maxXP) * 100, 100) : 0;
+
+    const pillarRows = PILLARS.map(p => {
+      const count = pillarCounts[p.id];
+      const pct = daysInRange > 0 ? (count / daysInRange) * 100 : 0;
+      return `
+        <div class="prog-pillar">
+          <div class="prog-pillar-name" style="color:${p.color}">${p.name}</div>
+          <div class="prog-bar-wrap">
+            <div class="prog-bar-fill" style="width:${pct}%; background:${p.color}"></div>
+          </div>
+          <div class="prog-pillar-count">${count} / ${daysInRange}d</div>
+        </div>`;
+    }).join("");
+
+    document.getElementById("progress-body").innerHTML = `
+      <div class="prog-xp-row">
+        <div class="prog-xp-num">${totalXP} <span>XP</span></div>
+        <div class="prog-xp-sub">of ${maxXP} possible</div>
+      </div>
+      <div class="prog-total-bar">
+        <div class="prog-total-fill" style="width:${xpPct}%"></div>
+      </div>
+      <div class="prog-pillars">${pillarRows}</div>`;
+  }
+
+  document.querySelectorAll(".period-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".period-tab").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activePeriod = btn.dataset.period;
+      renderProgress(activePeriod);
+    });
+  });
+
   document.getElementById("prev-day").addEventListener("click", () => {
     viewDate = offsetDate(viewDate, -1);
     render();
@@ -569,6 +711,7 @@
   });
 
   render();
+  renderProgress(activePeriod);
 </script>
 </body>
 </html>
