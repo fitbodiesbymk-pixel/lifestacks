@@ -42,6 +42,14 @@
     header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.5px; }
     header h1 span { color: var(--leisure); }
 
+    .back-btn {
+      font-size: 0.8rem; font-weight: 600; color: var(--muted);
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      padding: 4px 10px; cursor: pointer; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .back-btn:hover { background: var(--border); }
+
     .date-nav { display: flex; align-items: center; gap: 10px; }
     .date-nav button {
       background: none; border: 1px solid var(--border); border-radius: 6px;
@@ -277,7 +285,10 @@
 <body>
 
 <header>
-  <h1>Life<span>Stacks</span></h1>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a href="index.html" class="back-btn">← Home</a>
+    <h1>Life<span>Stacks</span></h1>
+  </div>
   <div class="date-nav">
     <button id="prev-day">‹</button>
     <div id="current-date"></div>
