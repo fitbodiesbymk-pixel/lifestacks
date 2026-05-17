@@ -262,15 +262,23 @@
     }
     .planning-xp-badge.earned { background: #FEF3C7; color: #92400E; }
 
-    .planning-input {
-      width: 100%; border: 1px solid var(--border); border-radius: 8px;
-      padding: 10px 12px; font-size: 0.87rem; color: var(--text);
-      background: var(--bg); resize: none; font-family: inherit;
-      height: 90px; outline: none; transition: border-color 0.2s;
-      line-height: 1.5;
+    .planning-row {
+      display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px;
     }
-    .planning-input:focus { border-color: var(--gold); }
-    .planning-input::placeholder { color: #C0C0C0; }
+    .planning-row:last-child { margin-bottom: 0; }
+    .planning-row-label {
+      font-size: 0.68rem; font-weight: 800; letter-spacing: 0.5px;
+      width: 58px; flex-shrink: 0; padding-top: 8px; text-transform: uppercase;
+    }
+    .planning-pillar-input {
+      flex: 1; border: 1px solid var(--border); border-radius: 8px;
+      padding: 7px 10px; font-size: 0.82rem; color: var(--text);
+      background: var(--bg); resize: none; font-family: inherit;
+      outline: none; transition: border-color 0.2s; line-height: 1.4;
+      overflow: hidden;
+    }
+    .planning-pillar-input:focus { border-color: var(--gold); }
+    .planning-pillar-input::placeholder { color: #C0C0C0; }
 
     /* Week strip */
     .week-strip {
@@ -384,9 +392,7 @@
     </div>
     <div class="planning-xp-badge" id="planning-badge">+10 XP</div>
   </div>
-  <div class="field-label">What will you do tomorrow across your pillars?</div>
-  <textarea class="planning-input" id="planning-input"
-    placeholder="e.g. Watch a TED Talk on positive psychology, go to lunch with my partner, run at 6am, take the kids to the park..."></textarea>
+  <div id="planning-inputs"></div>
 </div>
 
 <div class="week-strip">
@@ -470,13 +476,23 @@
     el.className = "streak-number" + (streak >= 3 ? " on-fire" : "");
   }
 
+  function getPlanningData(data) {
+    const p = data._planning;
+    if (!p || typeof p === "string") return {};
+    return p;
+  }
+
+  function hasPlanningContent(data) {
+    return Object.values(getPlanningData(data)).some(v => (v || "").trim().length > 0);
+  }
+
   function calcXP(data) {
     let xp = 0;
     PILLARS.forEach(p => {
       const e = data[p.id] || {};
       if (e.done) xp += e.stacked ? 20 : 10;
     });
-    if ((data._planning || "").trim()) xp += 10;
+    if (hasPlanningContent(data)) xp += 10;
     return xp;
   }
 
@@ -494,7 +510,8 @@
     document.getElementById("next-day").disabled = isToday;
     document.getElementById("next-day").style.opacity = isToday ? "0.3" : "1";
 
-    const data = getData(viewDate);
+    let data = getData(viewDate);
+    data = applyYesterdayIntentions(viewDate, data);
     renderPillars(data);
     renderPlanning(data);
     updateXP(data);
@@ -582,23 +599,64 @@
     });
   }
 
-  function renderPlanning(data) {
-    const input = document.getElementById("planning-input");
-    const badge = document.getElementById("planning-badge");
-    input.value = data._planning || "";
-    const filled = (data._planning || "").trim().length > 0;
-    badge.className = "planning-xp-badge" + (filled ? " earned" : "");
-    badge.textContent = filled ? "✓ +10 XP" : "+10 XP";
+  function applyYesterdayIntentions(date, data) {
+    if (date !== todayKey()) return data;
+    const yesterday = offsetDate(date, -1);
+    const yPlanning = getPlanningData(getData(yesterday));
+    let changed = false;
+    PILLARS.forEach(p => {
+      const intent = (yPlanning[p.id] || "").trim();
+      if (intent && !(data[p.id] && data[p.id].goal)) {
+        if (!data[p.id]) data[p.id] = { goal: "", note: "", done: false, stacked: false };
+        data[p.id].goal = intent;
+        changed = true;
+      }
+    });
+    if (changed) saveData(date, data);
+    return data;
+  }
 
-    input.oninput = () => {
-      const data = getData(viewDate);
-      data._planning = input.value;
-      saveData(viewDate, data);
-      updateXP(data);
-      const nowFilled = input.value.trim().length > 0;
-      badge.className = "planning-xp-badge" + (nowFilled ? " earned" : "");
-      badge.textContent = nowFilled ? "✓ +10 XP" : "+10 XP";
+  function renderPlanning(data) {
+    const badge = document.getElementById("planning-badge");
+    const container = document.getElementById("planning-inputs");
+    const planningData = getPlanningData(data);
+
+    container.innerHTML = "";
+    PILLARS.forEach(p => {
+      const val = planningData[p.id] || "";
+      const row = document.createElement("div");
+      row.className = "planning-row";
+      row.innerHTML = `
+        <div class="planning-row-label" style="color:${p.color}">${p.name}</div>
+        <textarea class="planning-pillar-input" data-pid="${p.id}"
+          placeholder="Your ${p.name.toLowerCase()} intention for tomorrow..."
+          rows="1">${val}</textarea>`;
+      container.appendChild(row);
+    });
+
+    const syncBadge = () => {
+      const d = getData(viewDate);
+      const filled = hasPlanningContent(d);
+      badge.className = "planning-xp-badge" + (filled ? " earned" : "");
+      badge.textContent = filled ? "✓ +10 XP" : "+10 XP";
     };
+
+    container.querySelectorAll(".planning-pillar-input").forEach(ta => {
+      // auto-grow
+      const grow = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
+      ta.addEventListener("input", () => {
+        const d = getData(viewDate);
+        if (!d._planning || typeof d._planning === "string") d._planning = {};
+        d._planning[ta.dataset.pid] = ta.value;
+        saveData(viewDate, d);
+        updateXP(d);
+        syncBadge();
+        grow();
+      });
+      grow();
+    });
+
+    syncBadge();
   }
 
   function updateXP(data) {
@@ -617,7 +675,7 @@
         parts.push(`<span><span class="xp-dot active" style="background:${p.color}"></span>${label}</span>`);
       }
     });
-    if ((data._planning || "").trim()) {
+    if (hasPlanningContent(data)) {
       parts.push(`<span><span class="xp-dot planning"></span>Planning +10</span>`);
     }
     if (!parts.length) {
